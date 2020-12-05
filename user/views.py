@@ -5,11 +5,12 @@ from django.core.exceptions import ImproperlyConfigured
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from .models import ChildProfile
 
 
 from rest_framework.response import Response
 from . import serializers
-from .utils import get_and_authenticate_user, create_user_account
+from .utils import get_and_authenticate_user, create_user_account, create_child_profile
 
 User = get_user_model()
 
@@ -19,7 +20,8 @@ class AuthViewSet(viewsets.GenericViewSet):
     serializer_classes = {
         'login': serializers.UserLoginSerializer,
         'register': serializers.UserRegisterSerializer,
-        'password_change': serializers.PasswordChangeSerializer
+        'password_change': serializers.PasswordChangeSerializer,
+        'child_create':serializers.ChildRegisterSerializer
     }
     queryset = ''
 
@@ -61,6 +63,14 @@ class AuthViewSet(viewsets.GenericViewSet):
         if self.action in self.serializer_classes.keys():
             return self.serializer_classes[self.action]
         return super().get_serializer_class()
+
+    @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated, ])
+    def child_create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        create_child_profile(request.user, **serializer.validated_data)
+        return Response(data = serializers.ChildRegisterSerializer(ChildProfile.objects.filter(userid = request.user), many = True).data, status=status.HTTP_204_NO_CONTENT)
+
 
 
 

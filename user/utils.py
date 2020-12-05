@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, get_user_model, login
 from rest_framework import serializers
+from .models import ChildProfile
 
 
 def get_and_authenticate_user(request, email, password):
@@ -19,3 +20,8 @@ def create_user_account(email, password, first_name="",
 
     user.save()
     return user
+
+def create_child_profile(parent_id, name, dob, gender, level, **extra_fields):
+    child = ChildProfile(userid = parent_id, name = name, dob = dob, gender = gender, level = level)
+    child.save()
+    return child
